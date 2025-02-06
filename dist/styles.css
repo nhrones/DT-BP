@@ -1,10 +1,4 @@
 
-/* body {
-   background-color: black;
-   color:white;
-   font-family: Arial, Helvetica, sans-serif;
-   margin: 0;
-} */
 body {
    color-scheme: dark;
    background-color: #222;
@@ -47,20 +41,14 @@ margin-left: 50px;
 }
 
 #header1 {
-   min-width: 70px;
+   min-width: 300px;
 }
 
 #header2 {
    min-width: 300px;
 }
-
-#header5 {
-   width: 50%;
-}
-
-.indicator {
-   font-size: 1rem;
-   font-weight: bold;
+#header6 {
+   width: 100%;
 }
 
 button {
@@ -105,13 +93,6 @@ table thead {
    position: sticky;
    inset-block-start: 0;
    /* "top" */
-}
-
-#content {
-   width: 100%;
-   margin: 0px;
-   height: 80%;
-   margin-bottom: 11%;
 }
 
 dialog {

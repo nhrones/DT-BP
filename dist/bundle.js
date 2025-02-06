@@ -230,10 +230,7 @@ var KvCache = class {
     const pwaObj = JSON.parse(records);
     this.dbMap = new Map(pwaObj);
     this.persist();
-    const result = this.hydrate();
-    if (result == "ok") {
-      signals.fire("buildDataTable", "", this);
-    }
+    this.hydrate();
   }
   /**
    * extract a set of column-schema from the DB.schema object
@@ -323,7 +320,7 @@ var KvCache = class {
   }
 };
 
-// ../CustomDataTable/mutableTableRow.ts
+// ../NewDataTable/tableRow.ts
 var deleteBtn = document.getElementById("deletebtn");
 var addBtn = document.getElementById("addbtn");
 var focusedRow;
@@ -350,23 +347,22 @@ function makeEditableRow(kvCache) {
       focusedRow.classList.add("selected_row");
       addBtn.setAttribute("hidden", "");
       deleteBtn.removeAttribute("hidden");
-      if (target.attributes.getNamedItem("read-only")) {
-        return;
-      }
       focusedCell = e.target;
       focusedCell.setAttribute("contenteditable", "");
       focusedCell.className = "editable ";
       focusedCell.onblur = () => {
         let key = focusedRow.dataset.cache_key;
         const col = focusedCell.dataset.column_id || 0;
-        const columnIndex = focusedCell.dataset.column_index || 0;
+        const columnIndex = parseInt(focusedCell.dataset.column_index) || 0;
         console.log(`focusedCell.onblur key: ${key} col: ${col}, columnIndex ${columnIndex}`);
         console.info("kvCache", kvCache.dbMap);
         const rowObj = kvCache.get(key);
         const currentValue = rowObj[col];
         const thisValue = focusedCell.textContent;
+        console.log(`Need change?  currentValue: ${currentValue}, thisValue: ${thisValue}`);
         if (currentValue !== thisValue) {
           rowObj[col] = thisValue;
+          console.log(`Needs key change? columnIndex:${columnIndex} type${typeof columnIndex}`);
           if (columnIndex === 0) {
             console.log("FIXING KEY");
             const newKey = thisValue;
@@ -386,63 +382,7 @@ function makeEditableRow(kvCache) {
 }
 __name(makeEditableRow, "makeEditableRow");
 
-// ../CustomDataTable/customDataTable.ts
-var tablehead = document.getElementById("table-head");
-var tableBody;
-function buildTableHead(kvCache) {
-  const tr = `
-<tr class="headerRow">
-`;
-  let th = "";
-  for (let i = 0; i < kvCache.columns.length; i++) {
-    if (i === 1) {
-      th += `    <th id="header${i + 1}" 
-   data-index=${i} value=1> ${kvCache.columns[i].name} 
-</th>
-`;
-    } else {
-      th += `    <th id="header${i + 1}" 
-   data-index=${i} value=1> ${kvCache.columns[i].name} 
-</th>
-`;
-    }
-  }
-  tablehead.innerHTML += tr + th;
-  tablehead.innerHTML += `</tr>`;
-}
-__name(buildTableHead, "buildTableHead");
-function buildDataTable(kvCache) {
-  if (!tableBody) {
-    tableBody = document.getElementById("table-body");
-  }
-  const querySet = kvCache.querySet;
-  tableBody.innerHTML = "";
-  if (querySet) {
-    for (let i = 0; i < querySet.length; i++) {
-      const obj = querySet[i];
-      let row = `<tr data-cache_key="${obj[kvCache.columns[0].name]}">
-        `;
-      for (let i2 = 0; i2 < kvCache.columns.length; i2++) {
-        const ro = kvCache.columns[i2].readOnly ? " read-only" : "";
-        row += `<td data-column_index=${i2} data-column_id="${kvCache.columns[i2].name}"${ro}>${obj[kvCache.columns[i2].name]}</td>
-            `;
-      }
-      row += "</tr>";
-      tableBody.innerHTML += row;
-    }
-  }
-  for (let i = 0; i < kvCache.columns.length; i++) {
-    const el = document.getElementById(`header${i + 1}`);
-    el.onclick = (_e) => {
-      resetFocusedRow();
-      buildDataTable(kvCache);
-    };
-  }
-  resetFocusedRow();
-  buildFooter(kvCache);
-  makeEditableRow(kvCache);
-}
-__name(buildDataTable, "buildDataTable");
+// ../NewDataTable/footer.ts
 var addBtn2 = document.getElementById("addbtn");
 var deleteBtn2 = document.getElementById("deletebtn");
 var table = document.getElementById("table");
@@ -462,23 +402,66 @@ function buildFooter(kvCache) {
   };
 }
 __name(buildFooter, "buildFooter");
-signals.on("buildDataTable", "", (cache) => {
-  buildDataTable(cache);
-});
 
-// ../CustomDataTable/dom.ts
+// ../Shared/utils.ts
 var $ = /* @__PURE__ */ __name((id) => document.getElementById(id), "$");
 var on = /* @__PURE__ */ __name((elem, event, listener) => {
   return elem.addEventListener(event, listener);
 }, "on");
-var popupDialog = $("popupDialog");
-var pinDialog = $("myDialog");
-var pinInput = $("pin");
-var popupText = $("popup_text");
-var pinTryCount = 0;
-var pinOK = false;
-function initDOM(kvCache) {
-  buildTableHead(kvCache);
+
+// ../NewDataTable/customDataTable.ts
+var tableBody;
+function buildDataTable(kvCache) {
+  if (!tableBody) {
+    tableBody = document.getElementById("table-body");
+  }
+  const querySet = kvCache.querySet;
+  tableBody.innerHTML = "";
+  if (querySet) {
+    for (let i = 0; i < querySet.length; i++) {
+      const obj = querySet[i];
+      let row = `<tr data-cache_key="${obj[kvCache.columns[0].name]}">
+        `;
+      for (let i2 = 0; i2 < kvCache.columns.length; i2++) {
+        row += `<td data-column_index=${i2} data-column_id="${kvCache.columns[i2].name}">${obj[kvCache.columns[i2].name]}</td>
+            `;
+      }
+      row += "</tr>";
+      tableBody.innerHTML += row;
+    }
+  }
+  for (let i = 0; i < kvCache.columns.length; i++) {
+    const el = document.getElementById(`header${i + 1}`);
+    el.onclick = (_e) => {
+      resetFocusedRow();
+      buildDataTable(kvCache);
+    };
+  }
+  resetFocusedRow();
+  buildFooter(kvCache);
+  makeEditableRow(kvCache);
+}
+__name(buildDataTable, "buildDataTable");
+signals.on("buildDataTable", "", (cache) => {
+  buildDataTable(cache);
+});
+
+// ../NewDataTable/tableHead.ts
+var tablehead = document.getElementById("table-head");
+function buildTableHead(kvCache) {
+  const tr = '<tr class="headerRow">';
+  let th = "";
+  for (let i = 0; i < kvCache.columns.length; i++) {
+    th += `   <th id="header${i + 1}" data-index=${i} value=1>${kvCache.columns[i].name}</th>`;
+  }
+  ;
+  tablehead.innerHTML += tr + th;
+  tablehead.innerHTML += `</tr>`;
+}
+__name(buildTableHead, "buildTableHead");
+
+// ../NewDataTable/backup.ts
+function initBackup(kvCache) {
   document.addEventListener("keydown", function(event) {
     if (event.ctrlKey && event.key === "b") {
       event.preventDefault();
@@ -491,6 +474,42 @@ function initDOM(kvCache) {
       restoreData();
     }
   });
+}
+__name(initBackup, "initBackup");
+function backupData(kvCache) {
+  const jsonData = JSON.stringify(Array.from(kvCache.dbMap.entries()));
+  const link = document.createElement("a");
+  const file = new Blob([jsonData], { type: "application/json" });
+  link.href = URL.createObjectURL(file);
+  link.download = "backup.json";
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+__name(backupData, "backupData");
+function restoreData() {
+  const fileload = document.getElementById("fileload");
+  fileload?.click();
+  fileload?.addEventListener("change", function() {
+    const reader = new FileReader();
+    reader.onload = function() {
+      signals.fire("restoreCache", "", reader.result);
+      globalThis.location.reload();
+    };
+    reader.readAsText(fileload.files[0]);
+  });
+}
+__name(restoreData, "restoreData");
+
+// ../NewDataTable/dom.ts
+var popupDialog = $("popupDialog");
+var pinDialog = $("myDialog");
+var pinInput = $("pin");
+var popupText = $("popup_text");
+var pinTryCount = 0;
+var pinOK = false;
+function initDOM(kvCache) {
+  buildTableHead(kvCache);
+  initBackup(kvCache);
   on(popupDialog, "click", (event) => {
     event.preventDefault();
     popupDialog.close();
@@ -544,36 +563,41 @@ function initDOM(kvCache) {
   }
 }
 __name(initDOM, "initDOM");
-function backupData(kvCache) {
-  const jsonData = JSON.stringify(Array.from(kvCache.dbMap.entries()));
-  const link = document.createElement("a");
-  const file = new Blob([jsonData], { type: "application/json" });
-  link.href = URL.createObjectURL(file);
-  link.download = "backup.json";
-  link.click();
-  URL.revokeObjectURL(link.href);
-}
-__name(backupData, "backupData");
-function restoreData() {
-  const fileload = document.getElementById("fileload");
-  fileload?.click();
-  fileload?.addEventListener("change", function() {
-    const reader = new FileReader();
-    reader.onload = function() {
-      signals.fire("restoreCache", "", reader.result);
-      globalThis.location.reload();
-    };
-    reader.readAsText(fileload.files[0]);
-  });
-}
-__name(restoreData, "restoreData");
+
+// ../NewDataTable/components/Container.ts
+var LayoutContainer = class extends HTMLElement {
+  static {
+    __name(this, "LayoutContainer");
+  }
+  constructor() {
+    super();
+    const containerTemplate = document.createElement("template");
+    containerTemplate.innerHTML = `
+        <slot></slot>
+     `;
+    const style = document.createElement("style");
+    style.textContent = `
+       :host {
+         display: "block";
+         width: 100%;
+         max-width: 100%;
+         margin-left: auto;
+         margin-right: auto;
+         background-color: "black";
+       }
+     `;
+    const shadowRoot = this.attachShadow({ mode: "closed" });
+    shadowRoot.appendChild(style);
+    shadowRoot.appendChild(containerTemplate.content.cloneNode(true));
+  }
+};
+customElements.define("layout-container", LayoutContainer);
 
 // src/main.ts
-var DEV_Mode = false;
 var appContext = {
-  BYPASS_PIN: DEV_Mode,
-  DEV: DEV_Mode,
-  LOCAL_DB: DEV_Mode,
+  BYPASS_PIN: true,
+  DEV: true,
+  LOCAL_DB: false,
   LocalDbURL: "http://localhost:9099/",
   RemoteDbURL: "https://kv-dt-rpc.deno.dev/",
   RpcURL: "SSERPC/kvRegistration",
