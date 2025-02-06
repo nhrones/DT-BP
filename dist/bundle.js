@@ -81,7 +81,6 @@ var KvClient = class {
     const eventSource = new EventSource(this.RegistrationURL);
     console.log("CONNECTING");
     eventSource.addEventListener("open", () => {
-      if (this.DEV) console.log("setting pin");
       this.callProcedure(this.ServiceURL, "GET", { key: ["PIN"] }).then((result) => {
         if (this.DEV) console.log("GET PIN ", result.value);
         const pin = signals.xorEncrypt(result.value);
@@ -219,7 +218,8 @@ var KvCache = class {
     this.columns = this.buildColumnSchema(this.schema.sample);
     this.kvClient = new KvClient(this, ctx);
     this.kvClient.init();
-    signals.on("restoreCache", "", (result) => {
+    signals.on("restoreCacheEV", "", (result) => {
+      console.log("kvCache got restoreCacheEV signal!");
       this.restoreCache(result);
     });
   }
@@ -230,7 +230,11 @@ var KvCache = class {
     const pwaObj = JSON.parse(records);
     this.dbMap = new Map(pwaObj);
     this.persist();
-    this.hydrate();
+    const result = this.hydrate();
+    console.log("restoreCache: ", result);
+    if (result == "ok") {
+      signals.fire("buildDataTableEV", "", this);
+    }
   }
   /**
    * extract a set of column-schema from the DB.schema object
@@ -261,6 +265,7 @@ var KvCache = class {
       this.dbMap = new Map([...this.dbMap.entries()].sort());
     }
     const mapString = JSON.stringify(Array.from(this.dbMap.entries()));
+    console.log(mapString);
     const encrypted = signals.xorEncrypt(mapString);
     this.kvClient.set(encrypted);
   }
@@ -268,7 +273,7 @@ var KvCache = class {
   hydrate() {
     this.raw = [...this.dbMap.values()];
     this.querySet = [...this.raw];
-    signals.fire("buildDataTable", "", this);
+    signals.fire("buildDataTableEV", "", this);
     return this.raw.length > 2 ? "ok" : "Not found";
   }
   /** resest the working querySet to original DB values */
@@ -371,9 +376,10 @@ function makeEditableRow(kvCache) {
               key = thisValue;
               kvCache.set(key, rowObj);
             }
+          } else {
+            console.info(`Calling kvCache.set(${key}`, rowObj);
+            kvCache.set(key, rowObj);
           }
-        } else {
-          kvCache.set(key, rowObj);
         }
       };
     };
@@ -442,7 +448,7 @@ function buildDataTable(kvCache) {
   makeEditableRow(kvCache);
 }
 __name(buildDataTable, "buildDataTable");
-signals.on("buildDataTable", "", (cache) => {
+signals.on("buildDataTableEV", "", (cache) => {
   buildDataTable(cache);
 });
 
@@ -492,7 +498,7 @@ function restoreData() {
   fileload?.addEventListener("change", function() {
     const reader = new FileReader();
     reader.onload = function() {
-      signals.fire("restoreCache", "", reader.result);
+      signals.fire("restoreCacheEV", "", reader.result);
       globalThis.location.reload();
     };
     reader.readAsText(fileload.files[0]);
@@ -597,7 +603,7 @@ customElements.define("layout-container", LayoutContainer);
 var appContext = {
   BYPASS_PIN: true,
   DEV: true,
-  LOCAL_DB: false,
+  LOCAL_DB: true,
   LocalDbURL: "http://localhost:9099/",
   RemoteDbURL: "https://kv-dt-rpc.deno.dev/",
   RpcURL: "SSERPC/kvRegistration",
