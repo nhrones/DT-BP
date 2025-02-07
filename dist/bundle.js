@@ -493,13 +493,14 @@ function backupData(kvCache) {
 }
 __name(backupData, "backupData");
 function restoreData() {
+  console.log("restoreData called");
   const fileload = document.getElementById("fileload");
   fileload?.click();
   fileload?.addEventListener("change", function() {
     const reader = new FileReader();
     reader.onload = function() {
+      console.log("fired  restoreCacheEV");
       signals.fire("restoreCacheEV", "", reader.result);
-      globalThis.location.reload();
     };
     reader.readAsText(fileload.files[0]);
   });
@@ -612,12 +613,13 @@ var appContext = {
     schema: {
       dbKey: "BP",
       sample: {
-        expense: "Z",
-        account: "",
-        amount: "",
-        when: "",
-        auto: true,
-        comments: ""
+        For: "Z",
+        Account: "",
+        Freq: "",
+        Auto: true,
+        Due: "",
+        Amount: "",
+        Remarks: ""
       }
     }
   }
