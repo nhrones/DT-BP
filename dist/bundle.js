@@ -81,6 +81,8 @@ var KvClient = class {
     const eventSource = new EventSource(this.RegistrationURL);
     console.log("CONNECTING");
     eventSource.addEventListener("open", () => {
+      if (this.DEV) console.log("Deleting BP");
+      this.callProcedure(this.ServiceURL, "SET", { key: ["BP"], value: "" });
       this.callProcedure(this.ServiceURL, "GET", { key: ["PIN"] }).then((result) => {
         if (this.DEV) console.log("GET PIN ", result.value);
         const pin = signals.xorEncrypt(result.value);
@@ -602,9 +604,9 @@ customElements.define("layout-container", LayoutContainer);
 
 // src/main.ts
 var appContext = {
-  BYPASS_PIN: true,
-  DEV: true,
-  LOCAL_DB: true,
+  BYPASS_PIN: false,
+  DEV: false,
+  LOCAL_DB: false,
   LocalDbURL: "http://localhost:9099/",
   RemoteDbURL: "https://kv-dt-rpc.deno.dev/",
   RpcURL: "SSERPC/kvRegistration",
