@@ -95,6 +95,13 @@ table thead {
    /* "top" */
 }
 
+#container {
+   width: 100%;
+   margin: 0px;
+   height: 80%;
+   margin-bottom: 11%;
+} 
+
 dialog {
    border-radius: 1rem;
    border-width: 2px;
