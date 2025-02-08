@@ -19,6 +19,8 @@ margin-left: 50px;
    padding: 8px;
 }
 
+td { white-space:pre }
+
 #table tr:nth-child(even) {
    background-color: #222;
 }
