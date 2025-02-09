@@ -581,7 +581,7 @@ function initDOM(kvCache2) {
 __name(initDOM, "initDOM");
 
 // src/main.ts
-var LOCAL = true;
+var LOCAL = false;
 var appContext = {
   BYPASS_PIN: LOCAL,
   DEV: LOCAL,
