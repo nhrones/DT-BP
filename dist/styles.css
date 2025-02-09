@@ -42,15 +42,8 @@ td { white-space:pre }
    user-select: none;
 }
 
-#header1 {
-   min-width: 200px;
-}
-
-#header2 {
-   min-width: 200px;
-}
-#header7 {
-   width: 100%;
+#header6 {
+   min-width: 600px;
 }
 
 button {
