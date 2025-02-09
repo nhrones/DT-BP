@@ -577,14 +577,13 @@ var appContext = {
   FocusedRowKey: "",
   dbOptions: {
     schema: {
-      dbKey: "BP",
-      keyColumnName: "For",
+      dbKey: "BP2",
+      keyColumnName: "What",
       sample: {
-        For: "Z",
-        Account: "",
-        Freq: "",
-        Auto: true,
-        Due: "",
+        What: "Z",
+        When: "",
+        How: "",
+        How_Often: "",
         Amount: "",
         Remarks: ""
       }
