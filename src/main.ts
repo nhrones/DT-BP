@@ -23,8 +23,9 @@ const appContext: AppContext = {
          sample: {
             What: "Z",
             When: "",
-            How: "",
-            How_Often: "",
+            How: ["Amex", "Checking", "Debit"],
+            Auto: true,
+            How_Often: ["Monthly", "Quarterly", "Annual"],
             Amount: "",
             Remarks:""
          }

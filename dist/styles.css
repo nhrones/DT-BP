@@ -42,7 +42,7 @@ td { white-space:pre }
    user-select: none;
 }
 
-#header6 {
+#header7 {
    min-width: 600px;
 }
 
@@ -126,3 +126,35 @@ p {
    font-size: 1rem;
    color: white;
  }
+
+ input[type="checkbox"] {
+   width: 1em;
+   height: 1em;
+}
+
+/* New for Select and Checkbox */
+input[type="checkbox"]:hover {
+   background-color: #e0e0e0;
+   cursor: pointer;
+}
+
+select {
+   padding: 8px;
+   border: 1px solid #ccc;
+   border-radius: 4px;
+   background-color: #f1f1f1;
+   font-size: 16px;
+   cursor: pointer;
+   outline: none;
+   width: 35vh;
+   text-align: center;
+}
+
+select:hover {
+   background-color: #e0e0e0;
+}
+
+select:focus {
+   border-color: #214974;
+   box-shadow: 0 0 0 0.1rem rgba(0, 123, 255, 0.25);
+}
