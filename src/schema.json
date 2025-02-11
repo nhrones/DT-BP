@@ -9,6 +9,8 @@
       "Auto": true,
       "How_Often": ["Monthly", "Quarterly", "Annual"],
       "Amount": "",
-      "Remarks":""
+      "Paid": "",
+      "Date_Paid": "",
+      "Remarks": ""
    }
 }

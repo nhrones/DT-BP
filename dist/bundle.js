@@ -609,6 +609,8 @@ var schema_default = {
     Auto: true,
     How_Often: ["Monthly", "Quarterly", "Annual"],
     Amount: "",
+    Paid: "",
+    Date_Paid: "",
     Remarks: ""
   }
 };
