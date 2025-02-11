@@ -598,6 +598,21 @@ function initDOM(kvCache2) {
 }
 __name(initDOM, "initDOM");
 
+// src/schema.json
+var schema_default = {
+  dbKey: "BP2",
+  keyColumnName: "What",
+  sample: {
+    What: "Z",
+    When: "",
+    How: ["Amex", "Checking", "Debit"],
+    Auto: true,
+    How_Often: ["Monthly", "Quarterly", "Annual"],
+    Amount: "",
+    Remarks: ""
+  }
+};
+
 // src/main.ts
 var LOCAL = false;
 var appContext = {
@@ -609,21 +624,7 @@ var appContext = {
   RpcURL: "SSERPC/kvRegistration",
   PIN: "",
   FocusedRowKey: "",
-  dbOptions: {
-    schema: {
-      dbKey: "BP2",
-      keyColumnName: "What",
-      sample: {
-        What: "Z",
-        When: "",
-        How: ["Amex", "Checking", "Debit"],
-        Auto: true,
-        How_Often: ["Monthly", "Quarterly", "Annual"],
-        Amount: "",
-        Remarks: ""
-      }
-    }
-  }
+  dbOptions: { schema: schema_default }
 };
 var kvCache = new KvCache(appContext);
 initDOM(kvCache);

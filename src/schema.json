@@ -1,0 +1,14 @@
+
+{
+   "dbKey": "BP2",
+   "keyColumnName":"What",
+   "sample": {
+      "What": "Z",
+      "When": "",
+      "How": ["Amex", "Checking", "Debit"],
+      "Auto": true,
+      "How_Often": ["Monthly", "Quarterly", "Annual"],
+      "Amount": "",
+      "Remarks":""
+   }
+}

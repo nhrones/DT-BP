@@ -2,8 +2,10 @@
 
 import { initDOM, KvCache } from "./deps.ts"
 import type { AppContext } from "./deps.ts"
+import thisSchema from "./schema.json" with { type: "json" };
 
 const LOCAL = false
+
 /** 
  * Shared app context -> dependency injected 
  */
@@ -16,23 +18,8 @@ const appContext: AppContext = {
    RpcURL: "SSERPC/kvRegistration",
    PIN: '',
    FocusedRowKey: "",
-   dbOptions: {
-      schema: {
-         dbKey: "BP2",
-         keyColumnName:"What",
-         sample: {
-            What: "Z",
-            When: "",
-            How: ["Amex", "Checking", "Debit"],
-            Auto: true,
-            How_Often: ["Monthly", "Quarterly", "Annual"],
-            Amount: "",
-            Remarks:""
-         }
-      }
-   }
+   dbOptions: { schema: thisSchema }
 }
-
 /**
  * Initiate async data loading and data provider
  * We pass in a context for the service
