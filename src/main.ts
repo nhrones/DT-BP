@@ -3,7 +3,7 @@
 import { type AppContext, KvCache, TableContainer } from "./deps.ts"
 import thisSchema from "./schema.json" with { type: "json" };
 
-const LOCAL = true
+const LOCAL = false
 
 /** 
  * Our shared app context -> dependency injected below
