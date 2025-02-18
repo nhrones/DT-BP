@@ -338,7 +338,7 @@ var KvCache = class {
   }
 };
 
-// ../NewComponents/Components/TableContainer.ts
+// ../Components/Components/TableContainer.ts
 var kvCache;
 var TableContainer = class _TableContainer extends HTMLElement {
   static {
@@ -514,7 +514,7 @@ var TableContainer = class _TableContainer extends HTMLElement {
 };
 TableContainer.register();
 
-// ../NewComponents/Components/AppFooter.ts
+// ../Components/Components/AppFooter.ts
 var TableFooter = class extends HTMLElement {
   static {
     __name(this, "TableFooter");
@@ -593,7 +593,7 @@ var TableFooter = class extends HTMLElement {
 };
 customElements.define("table-footer", TableFooter);
 
-// ../NewComponents/Components/PinContainer.ts
+// ../Components/Components/PinContainer.ts
 var PinContainer = class _PinContainer extends HTMLElement {
   static {
     __name(this, "PinContainer");
@@ -724,7 +724,7 @@ var schema_default = {
 };
 
 // src/main.ts
-var LOCAL = true;
+var LOCAL = false;
 var appContext = {
   BYPASS_PIN: LOCAL,
   DEV: LOCAL,
