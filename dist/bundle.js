@@ -87,7 +87,6 @@ var KvClient = class {
     console.log("CONNECTING");
     eventSource.addEventListener("open", () => {
       this.callProcedure(this.ServiceURL, "GET", { key: ["PIN"] }).then((result) => {
-        const pin = encryptText(result.value);
         this.CTX.PIN = result.value;
         this.fetchQuerySet();
       });
@@ -175,6 +174,23 @@ var KvClient = class {
       ).then((result) => {
         this.querySet = result.querySet;
         return this.querySet;
+      });
+    } catch (e) {
+      return { Error: e };
+    }
+  }
+  /** get row from key */
+  delete(key) {
+    try {
+      this.callProcedure(
+        this.ServiceURL,
+        "DELETE",
+        {
+          key,
+          value: ""
+        }
+      ).then((result) => {
+        console.info("Delete result: ", result);
       });
     } catch (e) {
       return { Error: e };
@@ -652,7 +668,7 @@ PinContainer.register();
 
 // src/schema.json
 var schema_default = {
-  dbKey: "BP2",
+  dbKey: "BP",
   keyColumnName: "What",
   sample: {
     What: "Z",
