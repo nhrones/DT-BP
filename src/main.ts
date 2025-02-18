@@ -1,12 +1,12 @@
 /// <reference lib="dom" />
-import { initDOM, KvCache } from "./deps.ts"
-import type { AppContext } from "./deps.ts"
+
+import { type AppContext, KvCache, TableContainer } from "./deps.ts"
 import thisSchema from "./schema.json" with { type: "json" };
 
-const LOCAL = false
+const LOCAL = true
 
 /** 
- * Shared app context -> dependency injected 
+ * Our shared app context -> dependency injected below
  */
 const appContext: AppContext = {
    BYPASS_PIN: LOCAL,
@@ -19,15 +19,15 @@ const appContext: AppContext = {
    FocusedRowKey: "",
    dbOptions: { schema: thisSchema }
 }
+
 /**
  * Initiate async data loading and data provider
- * We pass in a context for the service
+ * We pass in theabove context for the service
  */
-const kvCache = new KvCache(appContext)
+const kvCache = new KvCache(appContext) as KvCache
 
 /**
  * Initialize our Custom DataTable UI
  * We pass it a KvCache instance (data provider)
  */
-initDOM(kvCache)
-
+(document.getElementById("table-container") as TableContainer).init(kvCache)

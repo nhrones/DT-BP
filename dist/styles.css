@@ -42,10 +42,6 @@ td { white-space:pre }
    user-select: none;
 }
 
-#header9 {
-   min-width: 600px;
-}
-
 button {
    background-color: #04AA6D;
    border: none;
@@ -87,16 +83,8 @@ footer {
 table thead {
    position: sticky;
    inset-block-start: 0;
-   /* "top" */
 }
-
-#container {
-   width: 100%;
-   margin: 0px;
-   height: 80%;
-   margin-bottom: 11%;
-} 
-
+/* 
 dialog {
    border-radius: 1rem;
    border-width: 2px;
@@ -114,7 +102,7 @@ dialog {
    padding: 12px 20px;
    margin: 8px 0;
    box-sizing: border-box;
- }
+ } */
 
  label {
    font-size: 1rem;
