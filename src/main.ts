@@ -20,6 +20,8 @@ const appContext: AppContext = {
    dbOptions: { schema: thisSchema }
 }
 
+document.title = thisSchema.dbKey
+console.log("document.title: ", document.title)
 /**
  * Initiate async data loading and data provider
  * We pass in theabove context for the service
