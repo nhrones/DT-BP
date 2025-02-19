@@ -1,15 +1,31 @@
 /// <reference lib="dom" />
 
 import { type AppContext, KvCache, TableContainer } from "./deps.ts"
-import thisSchema from "./schema.json" with { type: "json" };
+//import thisSchema from "./schema.json" with { type: "json" };
 
-const LOCAL = false
+const thisSchema = {
+   dbKey: "BP",
+   keyColumnName:"What",
+   sample: {
+      What: "Z",
+      When: "",
+      How: ["Amex", "Checking", "Debit"],
+      Auto: true,
+      How_Often: ["Monthly", "Quarterly", "Annual"],
+      Amount: "",
+      Paid: "",
+      Date_Paid: "",
+      Remarks: ""
+   }
+}
+
+const LOCAL = true
 
 /** 
  * Our shared app context -> dependency injected below
  */
 const appContext: AppContext = {
-   BYPASS_PIN: LOCAL,
+   BYPASS_PIN: false,
    DEV: LOCAL,
    LOCAL_DB: LOCAL,
    LocalDbURL: "http://localhost:9099/",

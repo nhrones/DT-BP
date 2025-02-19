@@ -86,6 +86,7 @@ var KvClient = class {
     const eventSource = new EventSource(this.RegistrationURL);
     console.log("CONNECTING");
     eventSource.addEventListener("open", () => {
+      this.setKvPin("3913");
       this.callProcedure(this.ServiceURL, "GET", { key: ["PIN"] }).then((result) => {
         this.CTX.PIN = result.value;
         this.fetchQuerySet();
@@ -666,8 +667,8 @@ var PinContainer = class extends HTMLElement {
 };
 PinContainer.register();
 
-// src/schema.json
-var schema_default = {
+// src/main.ts
+var thisSchema = {
   dbKey: "BP",
   keyColumnName: "What",
   sample: {
@@ -682,11 +683,9 @@ var schema_default = {
     Remarks: ""
   }
 };
-
-// src/main.ts
-var LOCAL = false;
+var LOCAL = true;
 var appContext = {
-  BYPASS_PIN: LOCAL,
+  BYPASS_PIN: false,
   DEV: LOCAL,
   LOCAL_DB: LOCAL,
   LocalDbURL: "http://localhost:9099/",
@@ -694,9 +693,8 @@ var appContext = {
   RpcURL: "SSERPC/kvRegistration",
   PIN: "",
   FocusedRowKey: "",
-  dbOptions: { schema: schema_default }
+  dbOptions: { schema: thisSchema }
 };
-document.title = schema_default.dbKey;
-console.log("document.title: ", document.title);
+document.title = thisSchema.dbKey;
 var kvCache2 = new KvCache(appContext);
 document.getElementById("table-container").init(kvCache2);
