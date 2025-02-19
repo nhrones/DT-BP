@@ -1,6 +1,7 @@
 # KV-Cache-PWA
   - Pure vanilla HTML, CSS, javascript application - no frameworks
-  - Zero dependencies
+  - Local-First, Zero dependencies
+  - Maintains a local cache, and persists it to a remote DenoKv
 
 ## About this Proof Of Concept demo
  - All data is persisted and hydrated as a single key-value record in KvDB.       
@@ -12,4 +13,4 @@
 
 NOTE: The three files `index.html`, `bundle.js`, and `styles.css`, all come from `/Apps/Base/`.    
 These are common shared assets, and the build/bundle process only happens there.    
-Only `main.js` is unique in this app folder.
+Only the `main.js` file is unique in this app folder.
