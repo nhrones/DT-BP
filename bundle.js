@@ -375,8 +375,9 @@ var TableContainer = class extends HTMLElement {
     let template = document.getElementById("table-template");
     this.shadowRoot.append(template.content.cloneNode(true));
   }
-  init(thisCache) {
-    kvCache = thisCache;
+  //init(thisCache: KvCacheType) {
+  init(appContext) {
+    kvCache = new KvCache(appContext);
     this.table = this.shadowRoot.getElementById("table");
     this.tableBody = this.shadowRoot.getElementById("table-body");
     this.tablehead = this.shadowRoot.getElementById("table-head");

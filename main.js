@@ -1,6 +1,12 @@
 
-import { KvCache } from "./bundle.js"
-
+/** 
+ * A unique schema object 
+ * Note that the data-provider and the UI both use
+ * this object for auto-configuration.
+ * 
+ * In the schema-sample, a boolean value will produce a checkbox,
+ * and a string array will be auto-configured as a select element.
+ */
 const thisSchema = {
    dbKey: "BP",
    keyColumnName:"What",
@@ -17,13 +23,13 @@ const thisSchema = {
    }
 }
 
-const LOCAL = true
+const LOCAL = false
 
 /** 
  * Our shared app context -> dependency injected below
  */
 const appContext = {
-   BYPASS_PIN: false,
+   BYPASS_PIN: LOCAL,
    DEV: LOCAL,
    LOCAL_DB: LOCAL,
    LocalDbURL: "http://localhost:9099/",
@@ -34,17 +40,11 @@ const appContext = {
    dbOptions: { schema: thisSchema }
 }
 
+// set the title to the dbKey value
 document.title = thisSchema.dbKey
 
 /**
- * Initiate async data loading and data provider
- * We pass in theabove context for the service
- */
-const kvCache = new KvCache(appContext) //TODO move this into `table-container.init()`
-/**
  * Initialize our Custom DataTable UI
- * We pass it a KvCache instance (data provider)
+ * We pass it an appContext (for the data provider)
  */
-document.getElementById("table-container").init(kvCache) //TODO give this `appContext` and let it build kvCache
-
-// TODO move our build process to /common/ and copy bundle as needed
+document.getElementById("table-container").init(appContext)

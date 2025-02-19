@@ -10,5 +10,6 @@
 
 live at https://nhrones.github.io/DT-BP/
 
-ctrl + b = backup
-ctrl + r = restore
+NOTE: The three files `index.html`, `bundle.js`, and `styles.css`, all come from    
+/Apps/Base/. These are common shared assets, and the build/bundle only happens there.
+Only `main.js` is unique in this app.
