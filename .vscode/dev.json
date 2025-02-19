@@ -1,12 +1,4 @@
 {
-   "BUILD": {
-      "BundleName": "bundle.js",
-      "Entry": [
-         "./deps.ts"
-      ],
-      "Minify": false,
-      "OutPath": "."
-   },
    "RUN": {
       "Serve": "",
       "Port": 80,

@@ -22,14 +22,6 @@
       },
       {
          "type": "shell",
-         "command": "build",
-         "problemMatcher": [
-            "$deno"
-         ],
-         "label": "BUILD"
-      },
-      {
-         "type": "shell",
          "command": "serve",
          "problemMatcher": [],
          "label": "RUN"

@@ -17,13 +17,13 @@ const thisSchema = {
    }
 }
 
-const LOCAL = false
+const LOCAL = true
 
 /** 
  * Our shared app context -> dependency injected below
  */
 const appContext = {
-   BYPASS_PIN: LOCAL,
+   BYPASS_PIN: false,
    DEV: LOCAL,
    LOCAL_DB: LOCAL,
    LocalDbURL: "http://localhost:9099/",
