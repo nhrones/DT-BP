@@ -2,10 +2,10 @@
    "BUILD": {
       "BundleName": "bundle.js",
       "Entry": [
-         "./src/main.ts"
+         "./deps.ts"
       ],
       "Minify": false,
-      "OutPath": "dist"
+      "OutPath": "."
    },
    "RUN": {
       "Serve": "",
