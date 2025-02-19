@@ -1,7 +1,6 @@
 /// <reference lib="dom" />
 
 import { type AppContext, KvCache, TableContainer } from "./deps.ts"
-//import thisSchema from "./schema.json" with { type: "json" };
 
 const thisSchema = {
    dbKey: "BP",
@@ -19,13 +18,13 @@ const thisSchema = {
    }
 }
 
-const LOCAL = true
+const LOCAL = false
 
 /** 
  * Our shared app context -> dependency injected below
  */
 const appContext: AppContext = {
-   BYPASS_PIN: false,
+   BYPASS_PIN: LOCAL,
    DEV: LOCAL,
    LOCAL_DB: LOCAL,
    LocalDbURL: "http://localhost:9099/",

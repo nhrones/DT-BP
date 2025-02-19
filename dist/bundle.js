@@ -86,7 +86,6 @@ var KvClient = class {
     const eventSource = new EventSource(this.RegistrationURL);
     console.log("CONNECTING");
     eventSource.addEventListener("open", () => {
-      this.setKvPin("3913");
       this.callProcedure(this.ServiceURL, "GET", { key: ["PIN"] }).then((result) => {
         this.CTX.PIN = result.value;
         this.fetchQuerySet();
@@ -683,9 +682,9 @@ var thisSchema = {
     Remarks: ""
   }
 };
-var LOCAL = true;
+var LOCAL = false;
 var appContext = {
-  BYPASS_PIN: false,
+  BYPASS_PIN: LOCAL,
   DEV: LOCAL,
   LOCAL_DB: LOCAL,
   LocalDbURL: "http://localhost:9099/",
