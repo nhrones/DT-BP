@@ -611,7 +611,9 @@ var PinComponent = class extends HTMLElement {
   static {
     __name(this, "PinComponent");
   }
-  //static register() { customElements.define("pin-component", this); }
+  static register() {
+    customElements.define("pin-component", this);
+  }
   shadow;
   constructor() {
     super();
@@ -684,6 +686,7 @@ var PinComponent = class extends HTMLElement {
     }
   }
 };
+PinComponent.register();
 export {
   $,
   FooterComponent,
