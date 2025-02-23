@@ -48,3 +48,5 @@ const appContext = {
  * See: Components/TableComponent.init()
  */
 document.getElementById("table-component").init(thisSchema, appContext)
+
+//TODO Do a clean separation of Data-Provider and Web-Components
