@@ -9,9 +9,6 @@
 </head>
 
 <style>
-   pin-component:not(:defined) > * {
-      display: none;
-   }
    body {
       color-scheme: dark;
       background-color: #222;
@@ -21,47 +18,6 @@
 </style>
 
 <body>
-
-   <pin-component id="pin-component">
-      <template id="pinTemplate" shadowrootmode="closed">
-         <dialog id="popupDialog">
-            <p id="popup_text">Yup!</p>
-            <p>Press any key to continue.</p>
-         </dialog>
-
-         <dialog id="pinDialog">
-            <label for="pin">Enter PIN</label>
-            <input id="pin" type="password" />
-         </dialog>
-
-         <style>
-            dialog {
-               border-radius: 1rem;
-               border-width: 2px;
-               border-color: red;
-               background-color: black;
-            }
-
-            dialog::backdrop {
-               background-color: BLACK;
-            }
-
-            input {
-               font-size: 1rem;
-               border-radius: 10px;
-               padding: 12px 20px;
-               margin: 8px 0;
-               box-sizing: border-box;
-            }
-
-            label {
-               font-size: 1rem;
-               margin-right: 10px;
-               color: white;
-            }
-         </style>
-      </template>
-   </pin-component>
 
    <table-component id="table-component">
       <template id="tableTemplate" shadowrootmode="closed">
