@@ -1,3 +1,8 @@
+/// <reference lib="dom" />
+import { FooterComponent } from "../../Components/FootComponent.ts";
+export * from "../../Components/FootComponent.ts"
+export * from "../../Components/TableComponent.ts"
+
 
 /** 
  * A unique schema object 
@@ -39,21 +44,5 @@ const appContext = {
    FocusedKey: "",
 }
 
-/**
- * Initialize our Custom DataTable UI
- * We pass in a dbSchema and an appContext
- * @returns TableComponent.KvCache
- */
-const footer = document.getElementById("footer-component")
-const table = footer.init(thisSchema, appContext)
-
-const REQUIRE_PIN = true
-
-if (REQUIRE_PIN) {
-   document.getElementById("pin-component").init(table.kvCache.CTX)
-}
-
-//TODO Do a clean separation of Data-Provider and Web-Components
-//TODO Separate PIN-UI from the Table-UI --> use PIN only for KV-RPC
-
-// PIN-UI --> Cache --> Table-UI
+const footer = document.getElementById("footer-component") as FooterComponent
+footer.init(thisSchema, appContext)

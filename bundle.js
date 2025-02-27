@@ -2,103 +2,10 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// ../../Components/PinComponent/PinComponent.js
-var __defProp2 = Object.defineProperty;
-var __name2 = /* @__PURE__ */ __name((target, value) => __defProp2(target, "name", { value, configurable: true }), "__name");
-var on = /* @__PURE__ */ __name2((elem, event, listener) => {
-  return elem.addEventListener(event, listener);
-}, "on");
-var PinComponent = class extends HTMLElement {
-  static {
-    __name(this, "PinComponent");
-  }
-  static {
-    __name2(this, "PinComponent");
-  }
-  static register() {
-    customElements.define("pin-component", this);
-  }
-  shadow;
-  constructor() {
-    super();
-    const supportsDeclarative = HTMLElement.prototype.hasOwnProperty("attachInternals");
-    const internals = supportsDeclarative ? this.attachInternals() : void 0;
-    this.shadow = internals?.shadowRoot;
-  }
-  init(ctx) {
-    const popupDialog = this.shadow.getElementById("popupDialog");
-    const pinDialog = this.shadow.getElementById("pinDialog");
-    const pinInput = this.shadow.getElementById("pin");
-    const popupText = this.shadow.getElementById("popup_text");
-    on(popupDialog, "click", (event) => {
-      event.preventDefault();
-      popupDialog.close();
-    });
-    let pinTryCount = 0;
-    let pinOK = false;
-    on(popupDialog, "close", (event) => {
-      event.preventDefault();
-      if (!pinOK) pinDialog.showModal();
-    });
-    on(popupDialog, "keyup", (event) => {
-      event.preventDefault();
-      popupDialog.close();
-      if (!pinOK) pinDialog.showModal();
-    });
-    pinDialog?.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-      }
-    });
-    on(pinInput, "keyup", (event) => {
-      event.preventDefault();
-      const ecriptedPin = this.encryptText(pinInput.value);
-      if (event.key === "Enter" || ecriptedPin === ctx.PIN) {
-        pinTryCount += 1;
-        if (ecriptedPin === ctx.PIN) {
-          pinInput.value = "";
-          pinOK = true;
-          pinDialog.close();
-        } else {
-          pinDialog.close();
-          pinInput.value = "";
-          pinOK = false;
-          if (popupText) popupText.textContent = pinTryCount === 3 ? `Incorrect pin entered ${pinTryCount} times!
-       Please close this Page!` : `Incorrect pin entered ${pinTryCount} times!`;
-          if (pinTryCount === 3) {
-            document.body.innerHTML = `
-                     <h1>Three failed PIN attempts!</h1>
-                     <h1>Please close this page!</h1>`;
-          } else {
-            popupDialog.showModal();
-          }
-        }
-      }
-    });
-    pinDialog.showModal();
-    pinInput.focus({ focusVisible: true });
-  }
-  /** xor encryption */
-  encryptText(text) {
-    let result = "";
-    const key = "ndhg";
-    for (let i = 0; i < text.length; i++) {
-      result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-    }
-    return result;
-  }
-};
-PinComponent.register();
-
-// ../../Components/FooterComponent/FootComponent.js
-var __defProp3 = Object.defineProperty;
-var __name3 = /* @__PURE__ */ __name((target, value) => __defProp3(target, "name", { value, configurable: true }), "__name");
+// ../../Components/FootComponent.ts
 var FooterComponent = class extends HTMLElement {
   static {
     __name(this, "FooterComponent");
-  }
-  static {
-    __name3(this, "FooterComponent");
   }
   static register() {
     customElements.define("footer-component", this);
@@ -118,17 +25,17 @@ var FooterComponent = class extends HTMLElement {
       this.shadow.append(FooterTemplate.content.cloneNode(true));
     }
   }
-  init(thisSchema, appContext) {
-    const table = document.getElementById("table-component").init(thisSchema, appContext);
+  init(thisSchema2, appContext2) {
+    const table = document.getElementById("table-component").init(thisSchema2, appContext2);
     this.addBtn = this.shadow.getElementById("addbtn");
     this.addBtn.onclick = (_e) => {
-      const newRow = Object.assign({}, thisSchema.sampleRecord);
+      const newRow = Object.assign({}, thisSchema2.sampleRecord);
       for (const property in newRow) {
         if (typeof newRow[property] === "object") {
           newRow[property] = newRow[property][0];
         }
       }
-      const keyColName = thisSchema.keyColumnName;
+      const keyColName = thisSchema2.keyColumnName;
       table.kvCache.set(newRow[keyColName], newRow);
       table.buildDataTable();
       table.scrollToBottom();
@@ -177,15 +84,10 @@ var FooterComponent = class extends HTMLElement {
 };
 FooterComponent.register();
 
-// ../../Components/TableComponent/TableComponent.js
-var __defProp4 = Object.defineProperty;
-var __name4 = /* @__PURE__ */ __name((target, value) => __defProp4(target, "name", { value, configurable: true }), "__name");
+// ../../Data/DataProvider/src/kvClient.ts
 var KvClient = class {
   static {
     __name(this, "KvClient");
-  }
-  static {
-    __name4(this, "KvClient");
   }
   DEV = false;
   nextMsgID = 0;
@@ -350,12 +252,11 @@ var KvClient = class {
     });
   }
 };
+
+// ../../Data/DataProvider/src/kvCache.ts
 var KvCache = class {
   static {
     __name(this, "KvCache");
-  }
-  static {
-    __name4(this, "KvCache");
   }
   UiHost;
   dbKey = "";
@@ -487,14 +388,13 @@ var KvCache = class {
     }
   }
 };
+
+// ../../Components/TableComponent.ts
 var focusedCell;
 var focusedRow;
 var TableComponent = class extends HTMLElement {
   static {
     __name(this, "TableComponent");
-  }
-  static {
-    __name4(this, "TableComponent");
   }
   static register() {
     customElements.define("table-component", this);
@@ -517,8 +417,8 @@ var TableComponent = class extends HTMLElement {
     }
   }
   /** Initialize this component */
-  init(schema, appContext) {
-    this.kvCache = new KvCache(schema, appContext, this);
+  init(schema, appContext2) {
+    this.kvCache = new KvCache(schema, appContext2, this);
     this.table = this.shadow.getElementById("table");
     this.tableBody = this.shadow.getElementById("table-body");
     this.tableBody.addEventListener("click", this);
@@ -664,11 +564,38 @@ var TableComponent = class extends HTMLElement {
   }
 };
 TableComponent.register();
+
+// main.ts
+var thisSchema = {
+  dbKey: "BP",
+  keyColumnName: "What",
+  sampleRecord: {
+    What: "Z",
+    When: "",
+    How: ["Amex", "Checking", "Debit"],
+    Auto: true,
+    How_Often: ["Monthly", "Quarterly", "Annual"],
+    Amount: "",
+    Paid: "",
+    Date_Paid: "",
+    Remarks: ""
+  }
+};
+document.title = thisSchema.dbKey;
+var appContext = {
+  DEV: false,
+  LOCAL_DB: false,
+  LocalDbURL: "http://localhost:9099/",
+  RemoteDbURL: "https://dt-kv-rpc.deno.dev/",
+  RpcURL: "SSERPC/kvRegistration",
+  PIN: "",
+  FocusedKey: ""
+};
+var footer = document.getElementById("footer-component");
+footer.init(thisSchema, appContext);
 export {
   FooterComponent,
-  PinComponent,
   TableComponent,
   focusedCell,
-  focusedRow,
-  on
+  focusedRow
 };
