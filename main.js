@@ -30,8 +30,8 @@ document.title = thisSchema.dbKey
  * Our shared app context -> dependency injected below
  */
 const appContext = {
-   DEV: true,
-   LOCAL_DB: true,
+   DEV: false,
+   LOCAL_DB: false,
    LocalDbURL: "http://localhost:9099/",
    RemoteDbURL: "https://dt-kv-rpc.deno.dev/",
    RpcURL: "SSERPC/kvRegistration",
@@ -44,12 +44,13 @@ const appContext = {
  * We pass in a dbSchema and an appContext
  * @returns TableComponent.KvCache
  */
-const table = document.getElementById("table-component").init(thisSchema, appContext)
+const footer = document.getElementById("footer-component")
+const table = footer.init(thisSchema, appContext)
 
 const REQUIRE_PIN = true
 
 if (REQUIRE_PIN) {
-   document.getElementById("pin-component").init(table.kvCache)
+   document.getElementById("pin-component").init(table.kvCache.CTX)
 }
 
 //TODO Do a clean separation of Data-Provider and Web-Components
