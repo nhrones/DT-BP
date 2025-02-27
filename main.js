@@ -26,15 +26,12 @@ const thisSchema = {
 // set the title to the dbKey value
 document.title = thisSchema.dbKey
 
-const LOCAL = false
-
 /** 
  * Our shared app context -> dependency injected below
  */
 const appContext = {
-   BYPASS_PIN: LOCAL,
-   DEV: LOCAL,
-   LOCAL_DB: LOCAL,
+   DEV: true,
+   LOCAL_DB: true,
    LocalDbURL: "http://localhost:9099/",
    RemoteDbURL: "https://dt-kv-rpc.deno.dev/",
    RpcURL: "SSERPC/kvRegistration",
@@ -45,8 +42,17 @@ const appContext = {
 /**
  * Initialize our Custom DataTable UI
  * We pass in a dbSchema and an appContext
- * See: Components/TableComponent.init()
+ * @returns TableComponent.KvCache
  */
-document.getElementById("table-component").init(thisSchema, appContext)
+const table = document.getElementById("table-component").init(thisSchema, appContext)
+
+const REQUIRE_PIN = true
+
+if (REQUIRE_PIN) {
+   document.getElementById("pin-component").init(table.kvCache)
+}
 
 //TODO Do a clean separation of Data-Provider and Web-Components
+//TODO Separate PIN-UI from the Table-UI --> use PIN only for KV-RPC
+
+// PIN-UI --> Cache --> Table-UI
