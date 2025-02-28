@@ -28,9 +28,6 @@ const thisSchema = {
    }
 }
 
-// set the title to the dbKey value
-document.title = "Liabilities"
-
 /** 
  * Our shared app context -> dependency injected below
  */
