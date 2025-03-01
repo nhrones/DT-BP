@@ -1,5 +1,5 @@
 /// <reference lib="dom" />
-import { FooterComponent } from "../../Components/FootComponent.ts";
+import { TableComponent } from "../../Components/TableComponent.ts";
 export * from "../../Components/FootComponent.ts"
 export * from "../../Components/TableComponent.ts"
 
@@ -43,5 +43,6 @@ const appContext = {
    FocusedKey: "",
 }
 
-const footer = document.getElementById("footer-component") as FooterComponent
-footer.init(thisSchema, appContext)
+/** get a reference to our table-component */
+const table = document.getElementById("table-component") as TableComponent
+table!.init(thisSchema, appContext)
