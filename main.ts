@@ -1,4 +1,5 @@
 /// <reference lib="dom" />
+import type { AppContext, DataContext, Schema } from "../../Shared/types.ts";
 import { TableComponent } from "../../Components/TableComponent.ts";
 export * from "../../Components/FootComponent.ts"
 export * from "../../Components/TableComponent.ts"
@@ -14,7 +15,7 @@ export * from "../../Components/TableComponent.ts"
  * A number set to -1 will create an uneditable cell
  * A string set to "readonly" will also create an uneditable cell
  */
-const thisSchema = {
+const thisSchema: Schema = {
    dbKey: "BP",
    keyColumnName:"What",
    sampleRecord: {
@@ -33,16 +34,24 @@ const thisSchema = {
 /** 
  * Our shared app context -> dependency injected below
  */
-const appContext = {
+const appContext: AppContext = {
    DEV: false,
-   LOCAL_DB: false,
-   LocalDbURL: "http://localhost:9099/",
-   RemoteDbURL: "https://dt-kv-rpc.deno.dev/",
-   RpcURL: "SSERPC/kvRegistration",
-   PIN: '',
+   PIN: "",
    FocusedKey: "",
 }
 
+/** 
+ * Our shared data context -> dependency injected below
+ */
+const dataContext: DataContext = {
+   DEV: false,
+   LOCAL_DB: true,
+   LocalDbURL: "http://localhost:9099/",
+   RemoteDbURL: "https://dt-kv-rpc.deno.dev/",
+   RpcURL: "SSERPC/kvRegistration",
+}
+
+
 /** get a reference to our table-component */
 const table = document.getElementById("table-component") as TableComponent
-table!.init(thisSchema, appContext)
+table!.init(thisSchema, appContext, dataContext)
