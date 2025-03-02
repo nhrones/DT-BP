@@ -1,6 +1,8 @@
 /// <reference lib="dom" />
-import type { AppContext, DataContext, Schema } from "../../Shared/types.ts";
+import type { AppContext, DataContext, CacheType, Schema } from "../../Shared/types.ts";
 import { TableComponent } from "../../Components/TableComponent.ts";
+import { KvCache } from "../../Components/deps.ts";
+
 export * from "../../Components/FootComponent.ts"
 export * from "../../Components/TableComponent.ts"
 
@@ -50,7 +52,9 @@ const dataContext: DataContext = {
    RpcURL: "SSERPC/kvRegistration",
 }
 
+// We build cache first 
+const cache = new KvCache(thisSchema, dataContext, appContext.PIN)
 
 /** get a reference to our table-component */
 const table = document.getElementById("table-component") as TableComponent
-table!.init(thisSchema, appContext, dataContext)
+table!.init(thisSchema, appContext, cache)
