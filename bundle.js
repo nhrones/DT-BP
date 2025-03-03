@@ -1,9 +1,641 @@
 // deno-lint-ignore-file
-var b=Object.defineProperty;var l=(r,t)=>b(r,"name",{value:t,configurable:!0});var g=!1,d=class{static{l(this,"KvClient")}nextMsgID=0;querySet=[];transactions=new Map;currentPage=1;focusedRow=null;kvCache;CTX;ServiceURL;RegistrationURL;constructor(t,e){this.CTX=e,this.ServiceURL=e.LOCAL_DB?e.LocalDbURL:e.RemoteDbURL,this.RegistrationURL=this.ServiceURL+e.RpcURL,this.kvCache=t,this.transactions=new Map}init(t){let e=new EventSource(this.RegistrationURL);console.log("CONNECTING"),e.addEventListener("open",()=>{this.callProcedure(this.ServiceURL,"GET",{key:["PIN"]}).then(s=>{t.PIN=s.value,this.fetchQuerySet()})}),e.addEventListener("error",s=>{switch(e.readyState){case EventSource.OPEN:console.log("CONNECTED");break;case EventSource.CONNECTING:console.log("CONNECTING");break;case EventSource.CLOSED:console.log("DISCONNECTED");break}}),e.addEventListener("message",s=>{let n=JSON.parse(s.data),{txID:a,error:o,result:i}=n;if(a===-1&&this.handleMutation(i),!this.transactions.has(a))return;let c=this.transactions.get(a);this.transactions.delete(a),c&&c(o,i)})}handleMutation(t){console.info("Mutation event:",t)}async setKvPin(t){let e=this.kvCache.encryptText(t);await this.callProcedure(this.ServiceURL,"SET",{key:["PIN"],value:e}).then(s=>{g&&console.log(`Set PIN ${t} to: `,e)})}addNewRecord(){let t=Object.assign({},this.kvCache.schema.sampleRecord);for(let s in t)typeof t[s]=="object"&&(t[s]=t[s][0]);let e=this.kvCache.schema.keyColumnName;this.kvCache.set(t[e],t)}async fetchQuerySet(){let t=this.kvCache;await this.callProcedure(this.ServiceURL,"GET",{key:[this.kvCache.schema.dbKey]}).then(e=>{e.value?t.restoreCache(t.encryptText(e.value)):(this.addNewRecord(),h.fire("buildDataTableEV",this.kvCache))})}get(t){for(let e=0;e<this.querySet.length;e++){let s=this.querySet[e];if(s.id===t)return s}}set(t){try{this.callProcedure(this.ServiceURL,"SET",{key:[this.kvCache.schema.dbKey],value:t}).then(e=>(this.querySet=e.querySet,this.querySet))}catch(e){return{Error:e}}}delete(t){try{this.callProcedure(this.ServiceURL,"DELETE",{key:t,value:""}).then(e=>{console.info("Delete result: ",e)})}catch(e){return{Error:e}}}callProcedure(t,e,s){let n=this.nextMsgID++;return new Promise((a,o)=>{this.transactions.set(n,(i,c)=>{if(i)return o(new Error(i));a(c)}),fetch(t,{method:"POST",mode:"cors",body:JSON.stringify({txID:n,procedure:e,params:s})})})}};var u=class{static{l(this,"KvCache")}dbKey="";schema;nextMsgID=0;querySet=[];callbacks;columns=[];kvClient;dbMap;raw=[];constructor(t,e,s){this.dbKey=`${t.dbKey}`,this.schema=t,this.callbacks=new Map,this.dbMap=new Map,this.columns=this.buildColumnSchema(this.schema.sampleRecord),this.kvClient=new d(this,e),this.kvClient.init(s)}encryptText(t){let e="",s="ndhg";for(let n=0;n<t.length;n++)e+=String.fromCharCode(t.charCodeAt(n)^s.charCodeAt(n%s.length));return e}restoreCache(t){let e=JSON.parse(t);this.dbMap=new Map(e),this.persist(),this.hydrate()=="ok"&&h.fire("buildDataTableEV",this)}buildColumnSchema(t){let e=[];for(let[s,n]of Object.entries(t)){let a=!1;(typeof n=="number"&&n===-1||typeof n=="string"&&n==="READONLY")&&(a=!0),e.push({name:s,type:typeof n,defaultValue:n,readOnly:a})}return e}persist(t=!0){t&&(this.dbMap=new Map([...this.dbMap.entries()].sort()));let e=JSON.stringify(Array.from(this.dbMap.entries())),s=this.encryptText(e);this.kvClient.set(s)}hydrate(){return this.raw=[...this.dbMap.values()],this.querySet=[...this.raw],h.fire("buildDataTableEV",this),this.raw.length>2?"ok":"Not found"}resetData(){this.querySet=[...this.raw]}clean(t=null){let e=new Map;[...this.dbMap.keys()].forEach(n=>{n!==t&&e.set(n,this.dbMap.get(n))}),this.dbMap=e,this.persist(!0)}set(t,e){try{return this.dbMap.set(t,e),this.persist(!0),this.hydrate(),t}catch(s){return console.error("error setting "),"Error "+s}}get(t){try{return this.dbMap.get(t)}catch(e){return"Error "+e}}delete(t){try{let e=this.dbMap.delete(t);return e===!0&&this.persist(!0),this.hydrate(),e}catch(e){return"Error "+e}}};function C(){let r=new Map;return{on(e,s){r.has(e)?r.get(e).push(s):r.set(e,[s])},fire(e,s){let n=r.get(e);if(n)for(let a of n)a(s)}}}l(C,"buildSignalBus");var h=C();var m=class extends HTMLElement{static{l(this,"FooterComponent")}static register(){customElements.define("footer-component",this)}addBtn;deleteBtn;shadow;constructor(){super(),this.shadow=this.attachInternals()?.shadowRoot}init(t){this.addBtn=this.shadow.getElementById("addbtn"),this.addBtn.onclick=s=>{t.addNewRow()},this.deleteBtn=this.shadow.getElementById("deletebtn"),this.deleteBtn.onclick=s=>{t.deleteCurrentRow()};let e=this.shadow.getElementById("fileload");document.addEventListener("keydown",function(s){if(s.ctrlKey&&s.key==="b"){s.preventDefault();let n=t.getJsonDataSet(),a=document.createElement("a"),o=new Blob([n],{type:"application/json"});a.href=URL.createObjectURL(o),a.download="backup.json",a.click(),URL.revokeObjectURL(a.href)}s.ctrlKey&&s.key==="r"&&(s.preventDefault(),e.click(),e.addEventListener("change",function(){let n=new FileReader;n.onload=function(){t.restoreCache(n.result)},n.readAsText(e.files[0])}))})}};m.register();var p=class extends HTMLElement{static{l(this,"TableComponent")}static register(){customElements.define("table-component",this)}APP_CTX;focusedCell;focusedRow;schema;cache;footer;table;tablehead;tableBody;shadow;constructor(){super(),this.shadow=this.attachInternals()?.shadowRoot}init(t,e,s){return h.on("buildDataTableEV",()=>{this.buildDataTable()}),this.APP_CTX=e,this.schema=t,this.cache=s,this.table=this.shadow.getElementById("table"),this.tableBody=this.shadow.getElementById("table-body"),this.tableBody.addEventListener("click",this),this.tablehead=this.shadow.getElementById("table-head"),this.footer=document.getElementById("footer-component"),this.footer.init(this),this.buildTableHead(),this}handleEvent(t){this[`handle${t.type}`](t)}handleclick(t){let e=t.target;console.info("row click",e),console.info("row click",e.dataset),this.focusedRow&&this.focusedCell&&e!==this.focusedCell&&(this.focusedCell.removeAttribute("contenteditable"),this.focusedCell.className="",this.focusedCell.oninput=null),this.focusedRow?.classList.remove("selected_row"),this.focusedRow=e.parentElement,this.focusedRow.classList.add("selected_row"),this.APP_CTX.FocusedKey=this.focusedRow.dataset.cache_key,this.resetFooter(!1),this.focusedCell=e,this.focusedCell.setAttribute("contenteditable",""),this.focusedCell.className="editable ";let s=this.focusedRow.dataset.cache_key,n=this.focusedCell.dataset.column_id,a=parseInt(this.focusedCell.dataset.column_index)||0,o=this.cache.get(s);this.focusedCell.onblur=()=>{let i=this.focusedCell.textContent;if(this.focusedCell.tagName==="SELECT"){n=this.focusedCell.parentElement.dataset.column_id||"",a=parseInt(this.focusedCell.parentElement.dataset.column_index)||0;let c=this.focusedCell;i=c.options[c.selectedIndex].text}o[n]!==i&&(o[n]=i,a===0?s!==i&&(this.cache.delete(s),s=i,this.cache.set(s,o)):this.cache.set(s,o))}}scrollToBottom(){this.tableBody.rows[this.tableBody.rows.length-1].scrollIntoView({behavior:"smooth"})}buildTableHead(){let t='<tr class="headerRow">',e="";for(let s=0;s<this.cache.columns.length;s++)e+=`   <th id="header${s+1}" data-index=${s} value=1>${this.cache.columns[s].name}</th>`;this.tablehead.innerHTML+=t+e+"</tr>";for(let s=0;s<this.cache.columns.length;s++){let n=this.shadow.getElementById(`header${s+1}`);n.onclick=a=>{this.resetFocusedRow(),this.buildDataTable()}}}buildDataTable(){this.tableBody.innerHTML="",this.cache.querySet&&this.buildRows(),this.resetFocusedRow(),this.focusedCell?.focus()}buildRows(){let t=this.cache.querySet;if(t)for(let e=0;e<t.length;e++){let s=t[e],n=`<tr data-cache_key="${s[this.cache.columns[0].name]}">`;for(let a=0;a<this.cache.columns.length;a++){let o=this.cache.columns[a].name;switch(this.cache.columns[a].type){case"boolean":{let i=s[o]==="true"?"checked":"";n+=`<td data-column_index=${a} 
-                  data-column_id="${o}"><input type="checkbox" ${i}></td>`;break}case"number":n+=`<td data-column_index=${a} 
-                  data-column_id="${o}">${parseFloat(s[o])}</td>`;break;case"object":n+=`<td data-column_index=${a} 
-                  data-column_id="${o}">${this.buildSelect(this.cache.columns[a].defaultValue,s[o])}</td>`;break;default:n+=`<td data-column_index=${a} 
-                  data-column_id="${o}">${s[o]}</td>`;break}}n+="</tr>",this.tableBody.innerHTML+=n}}buildSelect(t,e){let s=`<select>
-   `;return t.forEach(n=>{e===n?s+=`<option value="${n}" selected>${n}</option>
-         `:s+=`<option value="${n}">${n}</option>
-      `}),s+="</select>",s}addNewRow(){let t=Object.assign({},this.schema.sampleRecord);for(let s in t)typeof t[s]=="object"&&(t[s]=t[s][0]);let e=this.schema.keyColumnName;this.cache.set(t[e],t),this.buildDataTable(),this.scrollToBottom()}deleteCurrentRow(){this.cache.delete(this.APP_CTX.FocusedKey),this.buildDataTable()}getJsonDataSet(){return JSON.stringify(Array.from(this.cache.dbMap.entries()))}restoreCache(t){this.cache.restoreCache(t)}resetFocusedRow(){this.resetFooter(!0),this.focusedRow=null}resetFooter(t){t?(this.footer.deleteBtn.setAttribute("hidden",""),this.footer.addBtn.removeAttribute("hidden")):(this.footer.addBtn.setAttribute("hidden",""),this.footer.deleteBtn.removeAttribute("hidden"))}};p.register();var y={dbKey:"BP",keyColumnName:"What",sampleRecord:{What:"Z",When:"",How:["Amex","Checking","Debit"],Auto:!0,How_Often:["Monthly","Quarterly","Annual"],Amount:"",Paid:"",Date_Paid:"",Remarks:""}},f={DEV:!1,PIN:"",FocusedKey:""},T={LOCAL_DB:!1,LocalDbURL:"http://localhost:9099/",RemoteDbURL:"https://dt-kv-rpc.deno.dev/",RpcURL:"SSERPC/kvRegistration"},S=new u(y,T,f),w=document.getElementById("table-component");w.init(y,f,S);export{m as FooterComponent,p as TableComponent};
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+
+// ../../DataProviders/KvProvider/kvClient.ts
+var DEV = false;
+var KvClient = class {
+  static {
+    __name(this, "KvClient");
+  }
+  nextMsgID = 0;
+  querySet = [];
+  transactions = /* @__PURE__ */ new Map();
+  currentPage = 1;
+  focusedRow = null;
+  kvCache;
+  CTX;
+  ServiceURL;
+  RegistrationURL;
+  /** ctor */
+  constructor(cache2, dataContext2) {
+    this.CTX = dataContext2;
+    this.ServiceURL = dataContext2.LOCAL_DB ? dataContext2.LocalDbURL : dataContext2.RemoteDbURL;
+    this.RegistrationURL = this.ServiceURL + dataContext2.RpcURL;
+    this.kvCache = cache2;
+    this.transactions = /* @__PURE__ */ new Map();
+  }
+  /** initialize our EventSource and fetch some data */
+  init(appContext2) {
+    const eventSource = new EventSource(this.RegistrationURL);
+    console.log("CONNECTING");
+    eventSource.addEventListener("open", () => {
+      this.callProcedure(this.ServiceURL, "GET", { key: ["PIN"] }).then((result) => {
+        appContext2.PIN = result.value;
+        this.fetchQuerySet();
+      });
+    });
+    eventSource.addEventListener("error", (_e) => {
+      switch (eventSource.readyState) {
+        case EventSource.OPEN:
+          console.log("CONNECTED");
+          break;
+        case EventSource.CONNECTING:
+          console.log("CONNECTING");
+          break;
+        case EventSource.CLOSED:
+          console.log("DISCONNECTED");
+          break;
+      }
+    });
+    eventSource.addEventListener("message", (evt) => {
+      const parsed = JSON.parse(evt.data);
+      const { txID, error, result } = parsed;
+      if (txID === -1) {
+        this.handleMutation(result);
+      }
+      if (!this.transactions.has(txID)) return;
+      const transaction = this.transactions.get(txID);
+      this.transactions.delete(txID);
+      if (transaction) transaction(error, result);
+    });
+  }
+  /**
+   * handle Mutation Event
+   * @param {{ rowID: any; type: any; }} result
+   */
+  handleMutation(result) {
+    console.info(`Mutation event:`, result);
+  }
+  /** set Kv Pin */
+  async setKvPin(rawpin) {
+    const pin = this.kvCache.encryptText(rawpin);
+    await this.callProcedure(this.ServiceURL, "SET", { key: ["PIN"], value: pin }).then((_result) => {
+      if (DEV) console.log(`Set PIN ${rawpin} to: `, pin);
+    });
+  }
+  addNewRecord() {
+    const newRow = Object.assign({}, this.kvCache.schema.sampleRecord);
+    for (const property in newRow) {
+      if (typeof newRow[property] === "object") {
+        newRow[property] = newRow[property][0];
+      }
+    }
+    const keyColName = this.kvCache.schema.keyColumnName;
+    this.kvCache.set(newRow[keyColName], newRow);
+  }
+  /** fetch a querySet */
+  async fetchQuerySet() {
+    const cache2 = this.kvCache;
+    await this.callProcedure(
+      this.ServiceURL,
+      "GET",
+      { key: [this.kvCache.schema.dbKey] }
+    ).then((result) => {
+      if (result.value) {
+        cache2.restoreCache(cache2.encryptText(result.value));
+      } else {
+        this.addNewRecord();
+        signals.fire("buildDataTableEV", this.kvCache);
+      }
+    });
+  }
+  /** get row from key */
+  get(key) {
+    for (let index = 0; index < this.querySet.length; index++) {
+      const element = this.querySet[index];
+      if (element.id === key) return element;
+    }
+  }
+  /** The `set` method mutates - will call the `persist` method. */
+  set(value) {
+    try {
+      this.callProcedure(
+        this.ServiceURL,
+        "SET",
+        {
+          key: [this.kvCache.schema.dbKey],
+          value
+        }
+      ).then((result) => {
+        this.querySet = result.querySet;
+        return this.querySet;
+      });
+    } catch (e) {
+      return { Error: e };
+    }
+  }
+  /** get row from key */
+  delete(key) {
+    try {
+      this.callProcedure(
+        this.ServiceURL,
+        "DELETE",
+        {
+          key,
+          value: ""
+        }
+      ).then((result) => {
+        console.info("Delete result: ", result);
+      });
+    } catch (e) {
+      return { Error: e };
+    }
+  }
+  /** 
+   * Make an Asynchronous Remote Proceedure Call
+   *  
+   * @param {any} procedure - the name of the remote procedure to be called
+   * @param {any} params - appropriately typed parameters for this procedure
+   * 
+   * @returns {Promise<any>} - Promise object has a transaction that is stored by ID    
+   *   in a transactions Set.   
+   *   When this promise resolves or rejects, the transaction is retrieves by ID    
+   *   and executed by the promise. 
+   */
+  callProcedure(dbServiceURL, procedure, params) {
+    const txID = this.nextMsgID++;
+    return new Promise((resolve, reject) => {
+      this.transactions.set(txID, (error, result) => {
+        if (error)
+          return reject(new Error(error));
+        resolve(result);
+      });
+      fetch(dbServiceURL, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify({ txID, procedure, params })
+      });
+    });
+  }
+};
+
+// ../../DataProviders/KvProvider/kvCache.ts
+var KvCache = class {
+  static {
+    __name(this, "KvCache");
+  }
+  dbKey = "";
+  schema;
+  nextMsgID = 0;
+  querySet = [];
+  callbacks;
+  columns = [];
+  kvClient;
+  dbMap;
+  raw = [];
+  /** ctor */
+  constructor(schema, dataContext2, appContext2) {
+    this.dbKey = `${schema.dbKey}`;
+    this.schema = schema;
+    this.callbacks = /* @__PURE__ */ new Map();
+    this.dbMap = /* @__PURE__ */ new Map();
+    this.columns = this.buildColumnSchema(this.schema.sampleRecord);
+    this.kvClient = new KvClient(this, dataContext2);
+    this.kvClient.init(appContext2);
+  }
+  /** xor encryption */
+  encryptText(text) {
+    let result = "";
+    const key = "ndhg";
+    for (let i = 0; i < text.length; i++) {
+      result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+    }
+    return result;
+  }
+  /** restore our cache from a json string */
+  restoreCache(records) {
+    const pwaObj = JSON.parse(records);
+    this.dbMap = new Map(pwaObj);
+    this.persist();
+    const result = this.hydrate();
+    if (result == "ok") {
+      signals.fire("buildDataTableEV", this);
+    }
+  }
+  /**
+   * extract a set of column-schema from the DB.schema object
+   */
+  buildColumnSchema(obj) {
+    const columns = [];
+    for (const [key, value] of Object.entries(obj)) {
+      let read_only = false;
+      if (typeof value === "number" && value === -1 || typeof value === "string" && value === "READONLY") {
+        read_only = true;
+      }
+      columns.push({
+        name: key,
+        type: typeof value,
+        defaultValue: value,
+        readOnly: read_only
+      });
+    }
+    return columns;
+  }
+  /**
+   * Persist the current dbMap to Kv   
+   * This is called for any mutation of the dbMap (set/delete)
+   */
+  persist(order = true) {
+    if (order) {
+      this.dbMap = new Map([...this.dbMap.entries()].sort());
+    }
+    const mapString = JSON.stringify(Array.from(this.dbMap.entries()));
+    const encrypted = this.encryptText(mapString);
+    this.kvClient.set(encrypted);
+  }
+  /** hydrate a dataset from a single raw record stored in kvDB */
+  hydrate() {
+    this.raw = [...this.dbMap.values()];
+    this.querySet = [...this.raw];
+    signals.fire("buildDataTableEV", this);
+    return this.raw.length > 2 ? "ok" : "Not found";
+  }
+  /** resest the working querySet to original DB values */
+  resetData() {
+    this.querySet = [...this.raw];
+  }
+  clean(what = null) {
+    const cleanMap = /* @__PURE__ */ new Map();
+    const keys = [...this.dbMap.keys()];
+    keys.forEach((value) => {
+      if (value !== what) {
+        cleanMap.set(value, this.dbMap.get(value));
+      }
+    });
+    this.dbMap = cleanMap;
+    this.persist(true);
+  }
+  /** The `set` method mutates - will call the `persist` method. */
+  set(key, value) {
+    try {
+      this.dbMap.set(key, value);
+      this.persist(true);
+      this.hydrate();
+      return key;
+    } catch (e) {
+      console.error("error setting ");
+      return "Error " + e;
+    }
+  }
+  /** The `get` method will not mutate records */
+  get(key) {
+    try {
+      const result = this.dbMap.get(key);
+      return result;
+    } catch (e) {
+      return "Error " + e;
+    }
+  }
+  /** The `delete` method mutates - will call the `persist` method. */
+  delete(key) {
+    try {
+      const result = this.dbMap.delete(key);
+      if (result === true) this.persist(true);
+      this.hydrate();
+      return result;
+    } catch (e) {
+      return "Error " + e;
+    }
+  }
+};
+
+// ../../Shared/signals.ts
+function buildSignalBus() {
+  const signalSubscriptions = /* @__PURE__ */ new Map();
+  const newSignalBus = {
+    /**
+     * on - registers a handler function to be executed when a signal-event is fired
+     * @param {key} signalName - signal name (one of `TypedSignals` only)!
+     * @param {string} id - id of a target element (may be an empty string)
+     * @param {Handler} handler - signal handler callback function
+     */
+    on(signalName, handler) {
+      if (signalSubscriptions.has(signalName)) {
+        const handlers = signalSubscriptions.get(signalName);
+        handlers.push(handler);
+      } else {
+        signalSubscriptions.set(signalName, [handler]);
+      }
+    },
+    /** 
+     * fire - publish a named-signal event
+     * executes all registered handlers for a named signal
+     * @param {key} signalName - signal name - one of `TypedSignals` only!
+     * @param {TypedSignals[key]} data - data payload, typed for this category of signal
+     */
+    fire(signalName, data) {
+      const handlers = signalSubscriptions.get(signalName);
+      if (handlers) {
+        for (const handler of handlers) {
+          handler(data);
+        }
+      }
+    }
+  };
+  return newSignalBus;
+}
+__name(buildSignalBus, "buildSignalBus");
+var signals = buildSignalBus();
+
+// ../../Components/FootComponent.ts
+var FooterComponent = class extends HTMLElement {
+  static {
+    __name(this, "FooterComponent");
+  }
+  static register() {
+    customElements.define("footer-component", this);
+  }
+  addBtn;
+  deleteBtn;
+  shadow;
+  /** ctor */
+  constructor() {
+    super();
+    this.shadow = this.attachInternals()?.shadowRoot;
+  }
+  /** initialize this FooterComponent */
+  init(table2) {
+    this.addBtn = this.shadow.getElementById("addbtn");
+    this.addBtn.onclick = (_e) => {
+      table2.addNewRow();
+    };
+    this.deleteBtn = this.shadow.getElementById("deletebtn");
+    this.deleteBtn.onclick = (_e) => {
+      table2.deleteCurrentRow();
+    };
+    const fileLoad = this.shadow.getElementById("fileload");
+    document.addEventListener("keydown", function(event) {
+      if (event.ctrlKey && event.key === "b") {
+        event.preventDefault();
+        const jsonData = table2.getJsonDataSet();
+        const link = document.createElement("a");
+        const file = new Blob([jsonData], { type: "application/json" });
+        link.href = URL.createObjectURL(file);
+        link.download = "backup.json";
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
+      if (event.ctrlKey && event.key === "r") {
+        event.preventDefault();
+        fileLoad.click();
+        fileLoad.addEventListener("change", function() {
+          const reader = new FileReader();
+          reader.onload = function() {
+            table2.restoreCache(reader.result);
+          };
+          reader.readAsText(fileLoad.files[0]);
+        });
+      }
+    });
+  }
+};
+FooterComponent.register();
+
+// ../../Components/TableComponent.ts
+var TableComponent = class extends HTMLElement {
+  static {
+    __name(this, "TableComponent");
+  }
+  static register() {
+    customElements.define("table-component", this);
+  }
+  APP_CTX;
+  focusedCell;
+  focusedRow;
+  schema;
+  cache;
+  footer;
+  table;
+  tablehead;
+  tableBody;
+  shadow;
+  constructor() {
+    super();
+    this.shadow = this.attachInternals()?.shadowRoot;
+  }
+  /** Initialize this component */
+  init(schema, appContext2, cache2) {
+    signals.on("buildDataTableEV", () => {
+      this.buildDataTable();
+    });
+    this.APP_CTX = appContext2;
+    this.schema = schema;
+    this.cache = cache2;
+    this.table = this.shadow.getElementById("table");
+    this.tableBody = this.shadow.getElementById("table-body");
+    this.tableBody.addEventListener("click", this);
+    this.tablehead = this.shadow.getElementById("table-head");
+    this.footer = document.getElementById("footer-component");
+    this.footer.init(this);
+    this.buildTableHead();
+    return this;
+  }
+  handleEvent(e) {
+    this[`handle${e.type}`](e);
+  }
+  handleclick(e) {
+    const el = e.target;
+    console.info("row click", el);
+    console.info("row click", el.dataset);
+    if (this.focusedRow && this.focusedCell && el !== this.focusedCell) {
+      this.focusedCell.removeAttribute("contenteditable");
+      this.focusedCell.className = "";
+      this.focusedCell.oninput = null;
+    }
+    this.focusedRow?.classList.remove("selected_row");
+    this.focusedRow = el.parentElement;
+    this.focusedRow.classList.add("selected_row");
+    this.APP_CTX.FocusedKey = this.focusedRow.dataset.cache_key;
+    this.resetFooter(false);
+    this.focusedCell = el;
+    this.focusedCell.setAttribute("contenteditable", "");
+    this.focusedCell.className = "editable ";
+    let key = this.focusedRow.dataset.cache_key;
+    let columnID = this.focusedCell.dataset.column_id;
+    let columnIndex = parseInt(this.focusedCell.dataset.column_index) || 0;
+    const rowObj = this.cache.get(key);
+    this.focusedCell.onblur = () => {
+      let thisValue = this.focusedCell.textContent;
+      if (this.focusedCell.tagName === "SELECT") {
+        columnID = this.focusedCell.parentElement.dataset.column_id || "";
+        columnIndex = parseInt(this.focusedCell.parentElement.dataset.column_index) || 0;
+        const theCell = this.focusedCell;
+        const text = theCell.options[theCell.selectedIndex].text;
+        thisValue = text;
+      }
+      if (rowObj[columnID] !== thisValue) {
+        rowObj[columnID] = thisValue;
+        if (columnIndex === 0) {
+          if (key !== thisValue) {
+            this.cache.delete(key);
+            key = thisValue;
+            this.cache.set(key, rowObj);
+          }
+        } else {
+          this.cache.set(key, rowObj);
+        }
+      }
+    };
+  }
+  /** scrollToBottom */
+  scrollToBottom() {
+    const lastRow = this.tableBody.rows[this.tableBody.rows.length - 1];
+    lastRow.scrollIntoView({ behavior: "smooth" });
+  }
+  /** Build the Table header */
+  buildTableHead() {
+    const tr = '<tr class="headerRow">';
+    let th = "";
+    for (let i = 0; i < this.cache.columns.length; i++) {
+      th += `   <th id="header${i + 1}" data-index=${i} value=1>${this.cache.columns[i].name}</th>`;
+    }
+    ;
+    this.tablehead.innerHTML += tr + th + `</tr>`;
+    for (let i = 0; i < this.cache.columns.length; i++) {
+      const el = this.shadow.getElementById(`header${i + 1}`);
+      el.onclick = (_e) => {
+        this.resetFocusedRow();
+        this.buildDataTable();
+      };
+    }
+  }
+  /** build an HTML table */
+  buildDataTable() {
+    this.tableBody.innerHTML = "";
+    if (this.cache.querySet) this.buildRows();
+    this.resetFocusedRow();
+    this.focusedCell?.focus();
+  }
+  /** build an HTML table */
+  buildRows() {
+    const querySet = this.cache.querySet;
+    if (querySet) {
+      for (let i = 0; i < querySet.length; i++) {
+        const obj = querySet[i];
+        let row = `<tr data-cache_key="${obj[this.cache.columns[0].name]}">`;
+        for (let i2 = 0; i2 < this.cache.columns.length; i2++) {
+          const colName = this.cache.columns[i2].name;
+          switch (this.cache.columns[i2].type) {
+            case "boolean": {
+              let checked = obj[colName] === "true" ? "checked" : "";
+              row += `<td data-column_index=${i2} 
+                  data-column_id="${colName}"><input type="checkbox" ${checked}></td>`;
+              break;
+            }
+            case "number":
+              row += `<td data-column_index=${i2} 
+                  data-column_id="${colName}">${parseFloat(obj[colName])}</td>`;
+              break;
+            case "object":
+              row += `<td data-column_index=${i2} 
+                  data-column_id="${colName}">${this.buildSelect(
+                this.cache.columns[i2].defaultValue,
+                obj[colName]
+              )}</td>`;
+              break;
+            default:
+              row += `<td data-column_index=${i2} 
+                  data-column_id="${colName}">${obj[colName]}</td>`;
+              break;
+          }
+        }
+        row += "</tr>";
+        this.tableBody.innerHTML += row;
+      }
+    }
+  }
+  /** Build select element */
+  buildSelect(options, selected) {
+    let selectElement = `<select>
+   `;
+    options.forEach((option) => {
+      if (selected === option) {
+        selectElement += `<option value="${option}" selected>${option}</option>
+         `;
+      } else {
+        selectElement += `<option value="${option}">${option}</option>
+      `;
+      }
+    });
+    selectElement += "</select>";
+    return selectElement;
+  }
+  /** add a row to the cache */
+  addNewRow() {
+    const newRow = Object.assign({}, this.schema.sampleRecord);
+    for (const property in newRow) {
+      if (typeof newRow[property] === "object") {
+        newRow[property] = newRow[property][0];
+      }
+    }
+    const keyColName = this.schema.keyColumnName;
+    this.cache.set(newRow[keyColName], newRow);
+    this.buildDataTable();
+    this.scrollToBottom();
+  }
+  /** delete a row from the cache */
+  deleteCurrentRow() {
+    this.cache.delete(this.APP_CTX.FocusedKey);
+    this.buildDataTable();
+  }
+  /** get a JSON dataset for backup */
+  getJsonDataSet() {
+    return JSON.stringify(Array.from(this.cache.dbMap.entries()));
+  }
+  /** restore the cache from a JSON string */
+  restoreCache(records) {
+    this.cache.restoreCache(records);
+  }
+  /** reset any existing focused row */
+  resetFocusedRow() {
+    this.resetFooter(true);
+    this.focusedRow = null;
+  }
+  /** reset footer buttons */
+  resetFooter(reset) {
+    if (reset) {
+      this.footer.deleteBtn.setAttribute("hidden", "");
+      this.footer.addBtn.removeAttribute("hidden");
+    } else {
+      this.footer.addBtn.setAttribute("hidden", "");
+      this.footer.deleteBtn.removeAttribute("hidden");
+    }
+  }
+};
+TableComponent.register();
+
+// main.ts
+var thisSchema = {
+  dbKey: "BP",
+  keyColumnName: "What",
+  sampleRecord: {
+    What: "Z",
+    When: "",
+    How: ["Amex", "Checking", "Debit"],
+    Auto: true,
+    How_Often: ["Monthly", "Quarterly", "Annual"],
+    Amount: "",
+    Paid: "",
+    Date_Paid: "",
+    Remarks: ""
+  }
+};
+var appContext = {
+  DEV: false,
+  PIN: "",
+  FocusedKey: ""
+};
+var dataContext = {
+  LOCAL_DB: false,
+  LocalDbURL: "http://localhost:9099/",
+  RemoteDbURL: "https://dt-kv-rpc.deno.dev/",
+  RpcURL: "SSERPC/kvRegistration"
+};
+var cache = new KvCache(thisSchema, dataContext, appContext);
+var table = document.getElementById("table-component");
+table.init(thisSchema, appContext, cache);
+export {
+  FooterComponent,
+  TableComponent
+};

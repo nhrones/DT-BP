@@ -1,8 +1,9 @@
 /// <reference lib="dom" />
 import type { AppContext, DataContext, CacheType, Schema } from "../../Shared/types.ts";
 import { TableComponent } from "../../Components/TableComponent.ts";
-import { KvCache } from "../../Components/deps.ts";
+import { KvCache } from "../../DataProviders/KvProvider/mod.ts";
 
+// required to register custom web components
 export * from "../../Components/FootComponent.ts"
 export * from "../../Components/TableComponent.ts"
 
