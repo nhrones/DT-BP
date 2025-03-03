@@ -53,7 +53,7 @@ const dataContext: DataContext = {
 }
 
 // We build cache first 
-const cache = new KvCache(thisSchema, dataContext, appContext.PIN)
+const cache: CacheType = new KvCache(thisSchema, dataContext, appContext)
 
 /** get a reference to our table-component */
 const table = document.getElementById("table-component") as TableComponent
